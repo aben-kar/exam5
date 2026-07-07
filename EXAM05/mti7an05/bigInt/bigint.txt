@@ -1,6 +1,7 @@
 #include "bigint.hpp"
 #include <cstdlib>
 #include <algorithm>
+#include <stdlib>
 
 // --- HELPER FUNCTIONS (C++98 Compliant, No Streams) ---
 
