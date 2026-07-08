@@ -173,6 +173,8 @@ bigint bigint::operator>>(const bigint &other) const
 }
 
 
+
+
 // --- COMPARISON OPERATORS ---
 
 bool bigint::operator<(const bigint &other) const
