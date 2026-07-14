@@ -1,50 +1,51 @@
-#ifndef BIGINT_HPP
-#define BIGINT_HPP
+#pragma once
 
 #include <iostream>
 #include <string>
+#include <cstdlib>
+#include <algorithm>
 
-class bigint {
+class bigint
+{
+    private:
+        std::string _big;
     public:
-        // orth
+        // 1
         bigint(unsigned int nbr = 0);
-        ~bigint();
         bigint(const bigint& other);
         bigint &operator=(const bigint& other);
+        ~bigint();
 
-        // get
-        std::string getInt() const;
+        // getter
+        std::string getBig() const;
 
-        //add
-        bigint operator+(const bigint& other) const;
+        // ADD
         bigint &operator+=(const bigint& other);
+        bigint operator+(const bigint& other) const;
 
         // increment
         bigint &operator++();
         bigint operator++(int);
 
         // shift left
-        bigint operator<<(unsigned int amount) const;
         bigint &operator<<=(unsigned int amount);
-        bigint operator<<(const bigint& other) const;
+        bigint operator<<(unsigned int amount) const;
         bigint &operator<<=(const bigint& other);
+        bigint operator<<(const bigint& other) const;
 
-        // right shift
-        bigint operator>>(unsigned int amount) const;
+        // shift right
         bigint &operator>>=(unsigned int amount);
-        bigint operator>>(const bigint& other) const;
+        bigint operator>>(unsigned int amount) const;
         bigint &operator>>=(const bigint& other);
+        bigint operator>>(const bigint& other) const;
 
-        //comparaison
+        // comparaisone
         bool operator<(const bigint& other) const;
         bool operator>(const bigint& other) const;
         bool operator<=(const bigint& other) const;
         bool operator>=(const bigint& other) const;
         bool operator==(const bigint& other) const;
         bool operator!=(const bigint& other) const;
-    private:
-        std::string _big;
 };
 
-std::ostream &operator<<(std::ostream& out, const bigint& other);
-#endif
+std::ostream &operator<<(std::ostream &out, const bigint& other);

@@ -1,9 +1,17 @@
 #include "bigint.hpp"
 #include <cstdlib>
 #include <algorithm>
-#include <stdlib>
 
-// --- HELPER FUNCTIONS (C++98 Compliant, No Streams) ---
+// --- HELPER FUNCTIONS ---
+
+// Kat-n9i l-asfar zaydin f l-shmal (Leading Zeros)
+static std::string normalize(const std::string &s)
+{
+    size_t pos = s.find_first_not_of('0');
+    if (pos == std::string::npos)
+        return "0";
+    return s.substr(pos);
+}
 
 // Manual replacement for std::to_string
 static std::string unsignedToStr(unsigned int nbr)
@@ -20,19 +28,18 @@ static std::string unsignedToStr(unsigned int nbr)
     return s;
 }
 
-// Safely converts a bigint string to a native integer for shifts.
-// Returns a defensive upper boundary if the bigint size overflows basic limits.
-static unsigned int safeStrToInt(const std::string &str)
+// Bddelna atoi l-hardcoded b had l-parser s7i7
+static unsigned long safeStrToULong(const std::string &str)
 {
-    if (str.size() > 7) 
-        return 999999; // Force out-of-bounds/annihilation threshold safely
-    return (unsigned int)std::atoi(str.c_str());
+    unsigned long result = 0;
+    for (size_t i = 0; i < str.size(); ++i)
+        result = result * 10 + (str[i] - '0');
+    return result;
 }
-
 
 // --- CONSTRUCTORS & DESTRUCTOR ---
 
-bigint::bigint(unsigned int nbr) : _big(unsignedToStr(nbr)) 
+bigint::bigint(unsigned int nbr) : _big(unsignedToStr(nbr))
 {
 }
 
@@ -53,8 +60,14 @@ bigint::~bigint()
 {
 }
 
+// --- GETTER ---
 
-// --- ADDITION OPERATORS ---
+std::string bigint::getBig() const
+{
+    return this->_big;
+}
+
+// --- ADDITION ---
 
 bigint &bigint::operator+=(const bigint &other)
 {
@@ -77,7 +90,8 @@ bigint &bigint::operator+=(const bigint &other)
     }
 
     std::reverse(result.begin(), result.end());
-    this->_big = result;
+    // Zdnaha hna bach l-jam3 dima ykoun nqi mn l-asfar (Edge case protection)
+    this->_big = normalize(result);
     return *this;
 }
 
@@ -88,12 +102,11 @@ bigint bigint::operator+(const bigint &other) const
     return result;
 }
 
-
-// --- INCREMENT OPERATORS ---
+// --- INCREMENT ---
 
 bigint &bigint::operator++()
 {
-    *this += 1; // Implicit conversion from unsigned int
+    *this += 1;
     return *this;
 }
 
@@ -104,8 +117,7 @@ bigint bigint::operator++(int)
     return tmp;
 }
 
-
-// --- LEFT SHIFT OPERATORS ---
+// --- SHIFT LEFT ---
 
 bigint &bigint::operator<<=(unsigned int amount)
 {
@@ -125,7 +137,8 @@ bigint bigint::operator<<(unsigned int amount) const
 
 bigint &bigint::operator<<=(const bigint &other)
 {
-    return *this <<= safeStrToInt(other._big);
+    // Kanhawlo l-bigint l raqm 3adi b safeStrToULong
+    return *this <<= (unsigned int)safeStrToULong(other._big);
 }
 
 bigint bigint::operator<<(const bigint &other) const
@@ -135,8 +148,7 @@ bigint bigint::operator<<(const bigint &other) const
     return result;
 }
 
-
-// --- RIGHT SHIFT OPERATORS (Fixed Erase / Empty String Bug) ---
+// --- SHIFT RIGHT ---
 
 bigint &bigint::operator>>=(unsigned int amount)
 {
@@ -162,7 +174,7 @@ bigint bigint::operator>>(unsigned int amount) const
 
 bigint &bigint::operator>>=(const bigint &other)
 {
-    return *this >>= safeStrToInt(other._big);
+    return *this >>= (unsigned int)safeStrToULong(other._big);
 }
 
 bigint bigint::operator>>(const bigint &other) const
@@ -172,17 +184,16 @@ bigint bigint::operator>>(const bigint &other) const
     return result;
 }
 
-
-
-
-// --- COMPARISON OPERATORS ---
+// --- COMPARAISON ---
 
 bool bigint::operator<(const bigint &other) const
 {
+    // L-logic dyalek mzyan 100%: li 3ndo length sgher howa li sgher
     if (this->_big.size() != other._big.size())
     {
         return this->_big.size() < other._big.size();
     }
+    // Ila kano b-nafs l-length, C++ gha-yqaren l-characters mn l-shmal l-limen
     return this->_big < other._big;
 }
 
@@ -211,8 +222,7 @@ bool bigint::operator!=(const bigint &other) const
     return this->_big != other._big; 
 }
 
-
-// --- OSTREAM OVERLOAD ---
+// --- STREAM OPERATOR ---
 
 std::ostream &operator<<(std::ostream &out, const bigint &other)
 {

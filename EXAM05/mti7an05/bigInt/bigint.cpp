@@ -2,6 +2,18 @@
 #include <cstdlib>
 #include <algorithm>
 
+// --- HELPER FUNCTIONS ---
+
+// Kat-n9i l-asfar zaydin f l-shmal (Leading Zeros)
+static std::string normalize(const std::string &s)
+{
+    size_t pos = s.find_first_not_of('0');
+    if (pos == std::string::npos)
+        return "0";
+    return s.substr(pos);
+}
+
+// Manual replacement for std::to_string
 static std::string unsignedToStr(unsigned int nbr)
 {
     if (nbr == 0)
@@ -16,68 +28,82 @@ static std::string unsignedToStr(unsigned int nbr)
     return s;
 }
 
-static unsigned int strToInt(const std::string &str)
+// Bddelna atoi l-hardcoded b had l-parser s7i7
+static unsigned long safeStrToULong(const std::string &str)
 {
-    if (str.size() > 7)
-        return 999999;
-    return (unsigned int)std::atoi(str.c_str());
+    unsigned long result = 0;
+    for (size_t i = 0; i < str.size(); ++i)
+        result = result * 10 + (str[i] - '0');
+    return result;
 }
+
+// --- CONSTRUCTORS & DESTRUCTOR ---
 
 bigint::bigint(unsigned int nbr) : _big(unsignedToStr(nbr))
 {
 }
 
-bigint::bigint(const bigint& other) : _big(other._big)
+bigint::bigint(const bigint &other) : _big(other._big) 
 {
 }
 
-bigint &bigint::operator=(const bigint& other){
+bigint &bigint::operator=(const bigint &other)
+{
     if (this != &other)
+    {
         this->_big = other._big;
+    }
     return *this;
 }
 
-bigint::~bigint()
+bigint::~bigint() 
 {
 }
 
+// --- GETTER ---
 
-
-std::string bigint::getInt() const{
+std::string bigint::getBig() const
+{
     return this->_big;
 }
 
-// add
-bigint bigint::operator+(const bigint &other) const
-{
-    bigint res(*this);
-    res += other;
-    return res;
-}
+// --- ADDITION ---
 
-bigint &bigint::operator+=(const bigint& other)
+bigint &bigint::operator+=(const bigint &other)
 {
     int carry = 0;
     int i = this->_big.size() - 1;
     int j = other._big.size() - 1;
     std::string result = "";
 
-    while (i >= 0 || j >= 0 || carry) {
+    while (i >= 0 || j >= 0 || carry)
+    {
         int x = (i >= 0) ? this->_big[i] - '0' : 0;
         int y = (j >= 0) ? other._big[j] - '0' : 0;
-
+        
         int sum = x + y + carry;
         carry = sum / 10;
         result.push_back((sum % 10) + '0');
-        i--;
-        j--;
+        
+        --i;
+        --j;
     }
+
     std::reverse(result.begin(), result.end());
-    this->_big = result;
+    // Zdnaha hna bach l-jam3 dima ykoun nqi mn l-asfar (Edge case protection)
+    this->_big = normalize(result);
     return *this;
 }
 
-//increment
+bigint bigint::operator+(const bigint &other) const
+{
+    bigint result(*this);
+    result += other;
+    return result;
+}
+
+// --- INCREMENT ---
+
 bigint &bigint::operator++()
 {
     *this += 1;
@@ -91,45 +117,45 @@ bigint bigint::operator++(int)
     return tmp;
 }
 
-// shift left
-bigint bigint::operator<<(unsigned int amount) const
-{
-    bigint res(*this);
-    res <<= amount;
-    return res;
-}
+// --- SHIFT LEFT ---
 
 bigint &bigint::operator<<=(unsigned int amount)
 {
     if (this->_big != "0" && amount > 0)
+    {
         this->_big.append(amount, '0');
+    }
     return *this;
 }
 
-bigint bigint::operator<<(const bigint& other) const
+bigint bigint::operator<<(unsigned int amount) const
 {
-    bigint res(*this);
-    res <<= other;
-    return res;
+    bigint result(*this);
+    result <<= amount;
+    return result;
 }
 
-bigint &bigint::operator<<=(const bigint& other)
+bigint &bigint::operator<<=(const bigint &other)
 {
-    return *this <<= strToInt(other._big);
+    // Kanhawlo l-bigint l raqm 3adi b safeStrToULong
+    return *this <<= (unsigned int)safeStrToULong(other._big);
 }
 
-// right shift
-bigint bigint::operator>>(unsigned int amount) const
+bigint bigint::operator<<(const bigint &other) const
 {
-    bigint res(*this);
-    res >>= amount;
-    return res;
+    bigint result(*this);
+    result <<= other;
+    return result;
 }
+
+// --- SHIFT RIGHT ---
 
 bigint &bigint::operator>>=(unsigned int amount)
 {
     if (amount >= this->_big.size())
+    {
         this->_big = "0";
+    }
     else if (amount > 0)
     {
         this->_big.erase(this->_big.size() - amount);
@@ -139,52 +165,67 @@ bigint &bigint::operator>>=(unsigned int amount)
     return *this;
 }
 
-bigint bigint::operator>>(const bigint& other) const
+bigint bigint::operator>>(unsigned int amount) const
 {
-    bigint res(*this);
-    res >>= other;
-    return res;
+    bigint result(*this);
+    result >>= amount;
+    return result;
 }
 
-bigint &bigint::operator>>=(const bigint& other)
+bigint &bigint::operator>>=(const bigint &other)
 {
-    return *this >>= strToInt(other._big);
+    return *this >>= (unsigned int)safeStrToULong(other._big);
 }
 
-bool bigint::operator<(const bigint& other) const
+bigint bigint::operator>>(const bigint &other) const
 {
+    bigint result(*this);
+    result >>= other;
+    return result;
+}
+
+// --- COMPARAISON ---
+
+bool bigint::operator<(const bigint &other) const
+{
+    // L-logic dyalek mzyan 100%: li 3ndo length sgher howa li sgher
     if (this->_big.size() != other._big.size())
+    {
         return this->_big.size() < other._big.size();
+    }
+    // Ila kano b-nafs l-length, C++ gha-yqaren l-characters mn l-shmal l-limen
     return this->_big < other._big;
 }
 
-bool bigint::operator>(const bigint& other) const
-{
-    return other < *this;
+bool bigint::operator>(const bigint &other) const 
+{ 
+    return other < *this; 
 }
 
-bool bigint::operator<=(const bigint& other) const
-{
-    return !(*this > other);
+bool bigint::operator<=(const bigint &other) const 
+{ 
+    return !(*this > other); 
 }
 
-bool bigint::operator>=(const bigint& other) const
-{
-    return !(*this < other);
+bool bigint::operator>=(const bigint &other) const 
+{ 
+    return !(*this < other); 
 }
 
-bool bigint::operator==(const bigint& other) const
-{
-    return this->_big == other._big;
+bool bigint::operator==(const bigint &other) const 
+{ 
+    return this->_big == other._big; 
 }
 
-bool bigint::operator!=(const bigint& other) const
-{
-    return this->_big != other._big;
+bool bigint::operator!=(const bigint &other) const 
+{ 
+    return this->_big != other._big; 
 }
+
+// --- STREAM OPERATOR ---
 
 std::ostream &operator<<(std::ostream &out, const bigint &other)
 {
-    out << other.getInt();
+    out << other.getBig();
     return out;
 }
