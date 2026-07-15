@@ -12,22 +12,27 @@ public:
     vect2(const vect2 &other);
     vect2 &operator=(const vect2 &other);
     vect2(int _x, int _y);
+
     vect2 &operator++();
     vect2 operator++(int);
     vect2 &operator--();
     vect2 operator--(int);
+    
     vect2 operator-() const;
-    vect2 operator*(int num) const;
+    
     vect2 operator*=(int num);
+    vect2 operator*(int num) const;
     vect2 operator+(const vect2 &other) const;
     vect2 operator-(const vect2 &other) const;
     vect2 operator*(const vect2 &other) const;
 
     int &operator[](int index);
     int operator[](int index) const;
+    
     vect2 &operator+=(const vect2 &other);
     vect2 &operator-=(const vect2 &other);
     vect2 &operator*=(const vect2 &other);
+    
     bool operator==(const vect2 &other) const;
     bool operator!=(const vect2 &other) const;
 
@@ -185,6 +190,7 @@ vect2 vect2::operator*(int num) const
     tmp.y *= num;
     return (tmp);
 }
+
 vect2 operator*(int num, const vect2 &other)
 {
     vect2 tmp(other);
